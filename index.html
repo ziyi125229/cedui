@@ -29,6 +29,19 @@
   body{margin:0;background:radial-gradient(900px 500px at 50% -8%,#2a2140,#14111c 62%);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
     line-height:1.6;-webkit-font-smoothing:antialiased;font-size:16px}
+  .welcome-screen{position:fixed;inset:0;z-index:80;overflow:auto;display:flex;flex-direction:column;justify-content:center;padding:30px 24px 24px;background:radial-gradient(520px 380px at 100% -10%,rgba(204,157,91,.16),transparent 72%),radial-gradient(420px 360px at -15% 92%,rgba(116,88,143,.18),transparent 72%),#14111c;text-align:center;transition:opacity .35s ease,visibility .35s ease}
+  .welcome-screen.out{opacity:0;visibility:hidden;pointer-events:none}
+  .welcome-main{width:min(100%,430px);margin:0 auto;animation:welcome-up .75s both ease-out}
+  .welcome-brand{font-size:45px;font-weight:700;line-height:1;letter-spacing:.18em;padding-left:.18em;color:#f3ead6;text-shadow:0 4px 24px rgba(0,0,0,.3)}
+  .welcome-kicker{display:flex;justify-content:center;align-items:center;gap:9px;margin-top:16px;color:var(--muted);font-size:11px;letter-spacing:.16em}.welcome-kicker b{color:var(--gold-2);font-size:14px;font-weight:400}
+  .welcome-subtitle{margin-top:12px;font-size:18px;letter-spacing:.12em;color:#d4c8af}.welcome-line{display:inline;color:var(--gold-2);font-size:20px;text-shadow:0 0 16px rgba(232,201,138,.45)}
+  .welcome-pair{display:flex;align-items:center;justify-content:center;margin:29px auto 18px}.welcome-person{position:relative;width:82px;height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(232,201,138,.32);border-radius:50%;background:radial-gradient(circle at 35% 28%,rgba(232,201,138,.2),rgba(37,31,53,.82) 62%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 20px rgba(0,0,0,.18)}.welcome-person:before{content:'';position:absolute;inset:7px;border:1px solid rgba(232,201,138,.12);border-radius:50%}.welcome-person small{position:relative;z-index:1;font-size:10px;letter-spacing:.12em;color:#9e9077;margin-bottom:2px}.welcome-person strong{position:relative;z-index:1;color:var(--gold-2);font-size:24px;font-weight:500;letter-spacing:.04em}.welcome-times{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:0 1px;color:#e7c57f;background:#211b2a;border:1px solid rgba(232,201,138,.6);border-radius:50%;font-size:18px;font-weight:300;box-shadow:0 4px 12px rgba(0,0,0,.28)}.welcome-times:before,.welcome-times:after{content:'';position:absolute;top:50%;width:22px;height:1px;background:linear-gradient(90deg,rgba(212,165,116,.15),rgba(232,201,138,.72))}.welcome-times:before{right:100%}.welcome-times:after{left:100%;transform:rotate(180deg)}
+  .welcome-question{font-size:18px;letter-spacing:.06em;color:#d8d2c4}.welcome-question em{font-style:normal;color:var(--gold-2);font-size:20px}
+  .welcome-stats{display:flex;align-items:center;justify-content:center;gap:18px;margin:24px auto 20px;padding:13px 14px;background:rgba(212,165,116,.06);border:1px solid rgba(212,165,116,.19);border-radius:13px}.welcome-stat{display:flex;flex-direction:column;align-items:center;gap:1px}.welcome-stat strong{color:var(--gold);font-size:24px;font-weight:500}.welcome-stat strong span{font-size:11px;color:#988b73}.welcome-stat small{font-size:10.5px;color:var(--muted)}.welcome-dot{color:rgba(212,165,116,.5)}
+  .welcome-props{margin:0 auto 22px;text-align:left;width:max-content;color:#d8d2c4;font-size:13px;line-height:1.9;letter-spacing:.04em}.welcome-props b{color:var(--gold-2);margin-right:8px}
+  .welcome-action{width:min(100%,430px);margin:0 auto;text-align:center;animation:welcome-up .85s .18s both ease-out}.welcome-enter{width:100%;border:0;border-radius:13px;padding:14px 22px;background:linear-gradient(135deg,#dfbd7f,#b9864c);box-shadow:0 9px 28px rgba(185,134,76,.24);color:#201a25;font:700 16px inherit;letter-spacing:.12em;cursor:pointer}.welcome-enter span{float:right;font-size:22px;font-weight:300;line-height:.75}.welcome-hint{margin-top:11px;color:#8f8573;font-size:11px;letter-spacing:.08em}
+  .welcome-footer{margin-top:22px;color:#746c61;font-size:10px;letter-spacing:.06em}
+  @keyframes welcome-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   .wrap{max-width:480px;margin:0 auto;padding:26px 18px 70px}
   .brand{text-align:center}
   .ornament{text-align:center;color:var(--gold);opacity:.5;letter-spacing:.3em;font-size:13px}
@@ -185,6 +198,22 @@
 </style>
 </head>
 <body>
+<section class="welcome-screen" id="welcome-screen" aria-label="测对儿欢迎页">
+  <div class="welcome-main">
+    <div class="welcome-brand">测对儿</div>
+    <div class="welcome-kicker"><span>16 型人格</span><b>×</b><span>AI</span></div>
+    <div class="welcome-subtitle">重新看见你们之间</div>
+    <div class="welcome-pair"><div class="welcome-person"><small>你的视角</small><strong>你</strong></div><div class="welcome-times">♡</div><div class="welcome-person"><small>对方的视角</small><strong>TA</strong></div></div>
+    <div class="welcome-question">一段关系，等你们<em>共同解锁</em></div>
+    <div class="welcome-stats"><div class="welcome-stat"><strong>16<span>种</span></strong><small>关系型号</small></div><div class="welcome-dot">·</div><div class="welcome-stat"><strong>32<span>种</span></strong><small>相处组合</small></div><div class="welcome-dot">·</div><div class="welcome-stat"><strong>3<span>段</span></strong><small>相处提示</small></div></div>
+    <div class="welcome-props"><div><b>✓</b>AI 解读你们的性格与相处</div><div><b>✓</b>性格匹配 · 型号契合 · 透明算分</div></div>
+  </div>
+  <div class="welcome-action">
+    <button class="welcome-enter" id="welcome-enter">进入测对儿 <span>→</span></button>
+    <div class="welcome-hint">约 1 分钟 · 完全免费</div>
+  </div>
+  <div class="welcome-footer">— · — · —<br>趣味测试 · 娱乐互动 · 内容仅供参考</div>
+</section>
 <div class="wrap">
 
   <div class="brand"><div class="ornament">— · — · —</div><div class="logo">CEDUI · 测对儿</div></div>
@@ -615,11 +644,19 @@ $('share').onclick=()=>{
   if(nat)nat.onclick=()=>{navigator.share({title:'测对儿 · 我俩的契合结果',text:'看看我们合不合,你也来测一个 👀',url:shareUrl}).then(()=>track('share_native')).catch(()=>{});};
   const close=()=>ov.remove();ov.querySelector('#ov-x').onclick=close;ov.onclick=e=>{if(e.target===ov)close();};
 };
+function enterApp(){
+  const welcome=$('welcome-screen');
+  if(!welcome||welcome.classList.contains('out'))return;
+  welcome.classList.add('out');
+  track('welcome_enter');
+  setTimeout(()=>welcome.remove(),380);
+}
+$('welcome-enter').onclick=enterApp;
 // 首屏:若地址栏带 ?a=&b=&rel= 且合法 → 直接展示 TA 分享的结果页
 (function applyShareParams(){try{
   const p=new URLSearchParams(location.search);const a=p.get('a'),b=p.get('b'),rel=p.get('rel');
   const RE=/^[EI][FS][OG][CA]$/;
-  if(a&&b&&RE.test(a)&&RE.test(b)&&TYPES[a]&&TYPES[b]){showSharedReport(a,b,rel||'正在暧昧');}
+  if(a&&b&&RE.test(a)&&RE.test(b)&&TYPES[a]&&TYPES[b]){showSharedReport(a,b,rel||'正在暧昧');enterApp();}
 }catch(e){}})();
 </script>
 </body>
