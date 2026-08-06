@@ -1,5 +1,18 @@
 {
   "functions": {
     "api/*.js": { "maxDuration": 60 }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "cedui-demo.vercel.app"
+        }
+      ],
+      "destination": "https://cedui.vercel.app/$1",
+      "permanent": true
+    }
+  ]
 }
