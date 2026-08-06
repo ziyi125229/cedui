@@ -9,14 +9,14 @@
 <meta property="og:site_name" content="测对儿 CEDUI">
 <meta property="og:title" content="测对儿 · 你俩到底合不合?">
 <meta property="og:description" content="算法当场判定关系型号 + 多 Agent AI 关系侧写,还能猜 TA 没说出口的心里话。你也来测一个。">
-<meta property="og:url" content="https://cedui-demo.vercel.app/">
-<meta property="og:image" content="https://cedui-demo.vercel.app/og.png">
+<meta property="og:url" content="https://cedui.vercel.app/">
+<meta property="og:image" content="https://cedui.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="测对儿 · 你俩到底合不合?">
 <meta name="twitter:description" content="算法判定关系型号 + AI 关系侧写,还能猜 TA 没说出口的心里话。">
-<meta name="twitter:image" content="https://cedui-demo.vercel.app/og.png">
+<meta name="twitter:image" content="https://cedui.vercel.app/og.png">
 <!-- Vercel Web Analytics(需在 Vercel 项目后台开启 Analytics 后生效) -->
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -318,7 +318,7 @@
     </div>
     <button class="share" id="share">📸 截图分享 · 邀请 TA 一起测</button>
     <button class="retry" id="retry">← 重新描述再测一次</button>
-    <div class="footnote">型号由<b style="color:var(--gold)">确定性算法判定</b>(描述→4字母),契合分明细可验证;AI 侧写为<b style="color:var(--gold)">真实后端多 Agent 生成示例</b>。<br>个人作品 · 演示用途</div>
+    <div class="footnote">型号由<b style="color:var(--gold)">确定性算法判定</b>(描述→4字母),契合分明细可验证;AI 侧写由<b style="color:var(--gold)">真实后端多 Agent 生成</b>。</div>
   </div>
 
 </div>
@@ -430,7 +430,7 @@ function resetToInput(){$('report').style.display='none';$('game-screen').style.
 // 报告页 AI 侧写：心里话直接复用「猜心里话」环节已揭开的内容,只补一次 scan 拿心动浓度
 async function fillReportAI(a,b,rel){
   if(det.diaries&&det.diaries.length){
-    $('ai-tag').textContent=det.fallback?'AI 侧写 · 真实生成示例':'AI · 实时生成';
+    $('ai-tag').textContent=det.fallback?'AI 侧写':'AI · 实时生成';
     renderDiaries(det.diaries.map(x=>({t:x.t,txt:x.content})));
     if(det.diagnosis){$('diag-hl').textContent=det.diagnosis.headline||'';$('diag-bd').textContent=det.diagnosis.body||'';}
   }else{setSample();}
@@ -443,7 +443,7 @@ async function fillReportAI(a,b,rel){
 }
 const API_BASE='';
 function renderDiaries(list){const dd=$('diaries');dd.innerHTML='';list.forEach(d=>{const el=document.createElement('div');el.className='diary-item';el.innerHTML=`<div class="t">${d.t}</div><div class="txt">${d.txt}</div>`;dd.appendChild(el);});}
-function setSample(){$('ai-tag').textContent='AI 侧写 · 真实生成示例';renderDiaries(DIARIES);$('heart-pct').textContent='72%';$('scan-verdict').textContent='"在乎但已悄悄收回伸出的手 · TA 在用沉默克制靠近的冲动"';$('diag-hl').textContent='等一句话 · 藏了整颗心';$('diag-bd').textContent='你根本不知道,TA 的清晨因为你的一条语音才算开始,你的温和笑容让 TA 在暗地里跟自己较劲。TA 连做梦都在等你开口,却怕一问就把你推远。不是犹豫,是太在乎了。';}
+function setSample(){$('ai-tag').textContent='AI 侧写';renderDiaries(DIARIES);$('heart-pct').textContent='72%';$('scan-verdict').textContent='"在乎但已悄悄收回伸出的手 · TA 在用沉默克制靠近的冲动"';$('diag-hl').textContent='等一句话 · 藏了整颗心';$('diag-bd').textContent='你根本不知道,TA 的清晨因为你的一条语音才算开始,你的温和笑容让 TA 在暗地里跟自己较劲。TA 连做梦都在等你开口,却怕一问就把你推远。不是犹豫,是太在乎了。';}
 async function loadAI(a,b,rel){
   $('ai-tag').textContent='AI 生成中…';renderDiaries([{t:'',txt:'7 个 Agent 正在为 TA 生成心里话…(首次冷启动稍慢)'}]);
   $('heart-pct').textContent='…';$('scan-verdict').textContent='…';$('diag-hl').textContent='…';$('diag-bd').textContent='';
@@ -616,7 +616,7 @@ function makeShareCard(){
   x.fillStyle='#e8c98a';x.font='800 112px sans-serif';x.fillText(String(c.score),300,382);
   x.fillStyle='#8f836c';x.font='16px sans-serif';x.fillText('契合指数',300,416);
   x.fillStyle='#ece6d8';x.font='500 21px sans-serif';_wrap(x,'“'+c.cp+'”',300,502,470,32);
-  x.fillStyle='#6b6452';x.font='13px sans-serif';x.fillText('cedui-demo.vercel.app',300,746);
+  x.fillStyle='#6b6452';x.font='13px sans-serif';x.fillText('cedui.vercel.app',300,746);
   x.fillStyle='#8f836c';x.font='13px sans-serif';x.fillText('你俩也来测一下 →',300,772);
   return cv.toDataURL('image/png');
 }
