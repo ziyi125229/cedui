@@ -1,4 +1,4 @@
-// Vercel serverless · 问 TA 一句(Q → T → P 串行 pipeline,以 TA 口吻回话)
+// Vercel serverless · 关系预演入口(Q → T → P 串行 pipeline)
 import { askPartnerPipeline } from '../lib/orchestrator.js'
 
 const hits = new Map()
@@ -20,8 +20,9 @@ export default async function handler(req, res){
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {})
     if (!body.question) return res.status(400).json({ ok: false, error: 'missing question' })
-    const result = await askPartnerPipeline(String(body.question).slice(0, 200), body.context || {}, [])
-    return res.status(200).json({ ok: true, answer: result.answer })
+    const priorTurns = Array.isArray(body.priorTurns) ? body.priorTurns.slice(-3) : []
+    const result = await askPartnerPipeline(String(body.question).slice(0, 500), body.context || {}, priorTurns)
+    return res.status(200).json({ ok: true, answer: result.answer, trace: result.trace })
   } catch (e) {
     return res.status(500).json({ ok: false, error: (e && e.message) || 'pipeline failed' })
   }
