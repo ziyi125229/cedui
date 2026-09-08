@@ -57,6 +57,40 @@ const SYSTEM_PROMPT = `你是“关系表达改写 Agent”。
 严格 JSON 数组，每项格式：{"style":"自然直接|回应阻力|降低防御","text":"...","reason":"<12-24字，说明这个版本如何调整原话>"}
 只输出 JSON，不要 markdown 或额外文字。`
 
+// Deterministic guard: reject common signs that the model has switched from
+// “rewrite the user's sentence” to “reply to TA”. This runs after generation.
+const replyShiftPatterns = [
+  /你刚才|你刚刚|刚才你|刚刚你/,
+  /你说没事|你说没关系|你说不用|你说没事的/,
+  /我知道你(等|觉得|以为|不想|生气|难过|在意)/,
+  /既然你(觉得|说|都|已经)/,
+  /我理解你(觉得|的)/,
+  /你之前说|你之前提|你刚才提/,
+  /既然这样|那你说|所以你(觉得|才|还是)/,
+  /你都这么说了|你都这样说了/,
+  /听你这么说|听你这么一说/,
+  /那我就|那我也|那我还是/,
+  /所以我才|所以我还是|所以我想/,
+  /我再解释一下|我还是想解释|我想跟你解释/
+]
+
+function looksLikeReply(text, original) {
+  const value = String(text || '').trim()
+  if (!value) return true
+  if (replyShiftPatterns.some(re => re.test(value))) return true
+
+  // A rewrite should not suddenly introduce explicit references to a
+  // conversation turn that are absent from the user's original wording.
+  const turnReference = /(刚才|刚刚|上一句|上面|你说|你提到|你告诉我|你回复|你回我|你觉得)/
+  if (turnReference.test(value) && !turnReference.test(original)) return true
+
+  // If the candidate starts with a discourse marker that strongly implies
+  // it is answering an immediately preceding statement, reject it.
+  if (/^(嗯|那|可是|但是|不过|行吧|好吧)[，,。]/.test(value) && !/^(嗯|那|可是|但是|不过|行吧|好吧)[，,。]/.test(original)) return true
+
+  return false
+}
+
 function parse(raw, original) {
   const match = String(raw || '').match(/\[[\s\S]*\]/)
   if (!match) return null
@@ -64,29 +98,36 @@ function parse(raw, original) {
     const arr = JSON.parse(match[0]).filter(x => x && typeof x.text === 'string').slice(0, 5)
     if (!arr.length) return null
     const allowed = new Set(['自然直接','回应阻力','降低防御'])
-    const forbiddenPatterns = [
-      /你刚才|你刚刚|刚才你|刚刚你/,
-      /你说没事|你说没关系|你说不用|你说没事的/,
-      /我知道你(等|觉得|以为|不想|生气|难过|在意)/,
-      /既然你(觉得|说|都|已经)/,
-      /我理解你(觉得|的)/,
-      /你之前说|你之前提|你刚才提/,
-      /既然这样|那你说|所以你(觉得|才|还是)/
-    ]
     const originalCompact = String(original || '').replace(/\s+/g,'')
     const clean = arr.map(x => ({
       style: allowed.has(x.style) ? x.style : '自然直接',
       text: String(x.text).trim().slice(0, 220),
       reason: String(x.reason || '').trim().slice(0, 40)
     })).filter(x => {
-      if (!x.text || forbiddenPatterns.some(re => re.test(x.text))) return false
-      // 防止模型直接返回原话；允许短语重合，但不能整句完全复制。
+      if (!x.text) return false
+      if (looksLikeReply(x.text, original)) return false
       const compact = x.text.replace(/\s+/g,'')
+      // 防止模型直接返回原话；允许短语重合，但不能整句完全复制。
       return compact !== originalCompact
     })
     if (!clean.length) return null
     return clean.slice(0, 3)
   } catch { return null }
+}
+
+async function generateRewrite({ message, relation, styles, situation, strategy, repair = false }) {
+  const user = `【关系】${relation}
+【TA 的沟通特点】${styles.join('、') || '未知'}
+【当前情境】${situation}
+【本次沟通策略】${strategy.primary_strategy || 'direct'}${strategy.secondary_strategy ? ` + ${strategy.secondary_strategy}` : ''}
+【策略原因】${strategy.reason || ''}
+【用户原话】
+${message}
+
+${repair ? '上一版生成结果出现了“回应 TA”的问题。请重新生成，严格只改写用户原话，不得承接、解释或回答任何不存在于原话中的 TA 话语。' : '请只改写“用户原话”。'}
+不要读取、回应或补充任何 TA 的上一轮回答，因为本次功能的目标只是“换一种说法”。
+输出的每一句都必须能脱离任何 TA 的回答，直接作为用户发给 TA 的话。`
+  return callLLM({ system: SYSTEM_PROMPT, user, temperature: repair ? 0.35 : 0.55, maxTokens: 700 })
 }
 
 export default async function handler(req, res){
@@ -101,7 +142,6 @@ export default async function handler(req, res){
     const message = String(body.message || '').trim().slice(0, 500)
     if (!message) return res.status(400).json({ ok: false, error: 'missing message' })
     const context = body.context || {}
-
     const styles = Array.isArray(context.partner_archetypes) ? context.partner_archetypes : []
     const relation = context.relation || '未知'
     const situation = String(context.situation || context.relationship_state || '未知').slice(0, 500)
@@ -116,20 +156,16 @@ export default async function handler(req, res){
       context: { ...context, prior_block: '本次改写不读取 TA 的上一轮回答' }
     })
 
-    const user = `【关系】${relation}
-【TA 的沟通特点】${styles.join('、') || '未知'}
-【当前情境】${situation}
-【本次沟通策略】${strategy.primary_strategy || 'direct'}${strategy.secondary_strategy ? ` + ${strategy.secondary_strategy}` : ''}
-【策略原因】${strategy.reason || ''}
-【用户原话】
-${message}
+    let raw = await generateRewrite({ message, relation, styles, situation, strategy })
+    let suggestions = parse(raw, message)
 
-请只改写“用户原话”。
-不要读取、回应或补充任何 TA 的上一轮回答，因为本次功能的目标只是“换一种说法”。
-输出的每一句都必须能脱离任何 TA 的回答，直接作为用户发给 TA 的话。`
+    // One low-temperature repair pass prevents a single bad generation from
+    // becoming a visible product badcase. No TA answer is passed to the repair.
+    if (!suggestions || suggestions.length < 3) {
+      raw = await generateRewrite({ message, relation, styles, situation, strategy, repair: true })
+      suggestions = parse(raw, message)
+    }
 
-    const raw = await callLLM({ system: SYSTEM_PROMPT, user, temperature: 0.55, maxTokens: 700 })
-    const suggestions = parse(raw, message)
     if (!suggestions) throw new Error('rewrite parse failed')
     return res.status(200).json({ ok: true, suggestions, strategy: { primary_strategy: strategy.primary_strategy, secondary_strategy: strategy.secondary_strategy, reason: strategy.reason } })
   } catch (e) {
